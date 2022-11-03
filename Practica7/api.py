@@ -37,8 +37,8 @@ def horario_valido(horario: list) -> bool:
     
     return True
 
-# Comprueba si una asignatura es correcta o no.
 def comprobar_asignatura(asignatura: dict) -> str or None:
+    """Comprueba si una asignatura es correcta o no."""
     
     if len(asignatura) > 3:
         return "Demasiados campos"
@@ -52,7 +52,25 @@ def comprobar_asignatura(asignatura: dict) -> str or None:
     if not horario_valido(asignatura.get("horario")):
         return "Horario no valido."
 
-    
+def filtrar_asignaturas_url(alumnos_gte: int, page: int, per_page: int) -> tuple(dict, int):
+    """Retorna un diccionario con los url de las asignaturas que cumplen el requisito (si lo hay) de ser mayores que alumnos_gte. Si se especifica, se divide en páginas."""
+    if(alumnos_gte == None):    #Valor por defecto
+        alumnos_gte = 0
+
+    pagina_asignaturas
+    if(page != None and per_page != None):
+        pagina_asignaturas = lista_asignaturas[(page-1)*per_page:page*per_page-1]
+    else:
+        pagina_asignaturas = lista_asignaturas
+
+    urls = [f"/asignaturas/{x.get(id)}" for x in pagina_asignaturas if x.get("numero_alumnos") >= alumnos_gte]
+
+    code
+    if(len(urls) < len(lista_asignaturas)):
+        code = 206  #Partial content
+    else:
+        code = 200  #OK
+    return ({"asignaturas": urls}, code)
     
 ###
 ### <DEFINIR AQUI EL SERVICIO REST>
@@ -80,12 +98,6 @@ def eliminar_asignaturas():
     #Borrar (resetear el diccionario de asignaturas)
     lista_asignaturas = list()
     return ("Borrado realizado con éxito", 204)
-
-def filtrar_asignaturas_url(alumnos_gte: int, page: int, per_page: int) -> tuple(dict, int):
-    """Retorna un diccionario con los url de las asignaturas que cumplen el requisito (si lo hay) de ser mayores que alumnos_gte. Si se especifica, se divide en páginas."""
-    if(alumnos_gte == None):    #Valor por defecto
-        alumnos_gte = 0
-    ret = {"asignaturas": [f"/asignaturas/{x.get(id)}" for x in lista_asignaturas if x.get("numeros_alumnos") >= alumnos_gte]}
 
 
 @app.route("/asignaturas", methods=['GET'])
