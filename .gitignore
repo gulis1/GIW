@@ -3,3 +3,9 @@
 Practica4/Bases+de+Datos-SQLite.ipynb
 */SQLiteStudio
 /Practica6/credentials.json
+
+#Ignorar enunciados
+*.pdf
+
+#Ignorar tests
+tests.py

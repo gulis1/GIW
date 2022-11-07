@@ -52,20 +52,25 @@ def comprobar_asignatura(asignatura: dict) -> str or None:
     if not horario_valido(asignatura.get("horario")):
         return "Horario no valido."
 
-def filtrar_asignaturas_url(alumnos_gte: int, page: int, per_page: int) -> tuple(dict, int):
+def filtrar_asignaturas_url(alumnos_gte: int, page: int = None, per_page: int = None) -> tuple:
     """Retorna un diccionario con los url de las asignaturas que cumplen el requisito (si lo hay) de ser mayores que alumnos_gte. Si se especifica, se divide en páginas."""
     if(alumnos_gte == None):    #Valor por defecto
         alumnos_gte = 0
 
-    pagina_asignaturas
+    pagina_asignaturas = None
     if(page != None and per_page != None):
-        pagina_asignaturas = lista_asignaturas[(page-1)*per_page:page*per_page-1]
+        ini = (page - 1) * per_page
+        fin = page*per_page
+        # app.logger.info("Rango de elementos cogidos (ini-fin): "str(ini) + str(fin))
+        pagina_asignaturas = lista_asignaturas[ini:fin]
     else:
         pagina_asignaturas = lista_asignaturas
 
-    urls = [f"/asignaturas/{x.get(id)}" for x in pagina_asignaturas if x.get("numero_alumnos") >= alumnos_gte]
+    app.logger.info(pagina_asignaturas)
+    urls = [f"/asignaturas/{x.get('id')}" for x in pagina_asignaturas if x.get("numero_alumnos") >= alumnos_gte]
+    app.logger.info(alumnos_gte)
 
-    code
+    code = None
     if(len(urls) < len(lista_asignaturas)):
         code = 206  #Partial content
     else:
@@ -90,30 +95,37 @@ def asignaturas_post():
         return (f"{json.dumps({'id': nueva_as['id']})}\n", 201)
 
 
-    else:  return (f"{json.dumps({'error': error})}\n", 400)
+    else:  return ("", 400)
 
 @app.route("/asignaturas", methods=['DELETE'])
 def eliminar_asignaturas():
     """Borra todas las asignaturas que pudieran existir. Devuelve el código 204 No Content"""
     #Borrar (resetear el diccionario de asignaturas)
+    global lista_asignaturas
     lista_asignaturas = list()
-    return ("Borrado realizado con éxito", 204)
+    return ("", 204)
 
 
 @app.route("/asignaturas", methods=['GET'])
 def acceder_asignatura():
     """Devuelve un JSON con las URLs de la asignatura. Si no se especifica la asignatura se devuelven todas."""
     page = request.args.get('page')
+    page = int(page) if page else page  #Convert to int if not None
+
     per_page = request.args.get('per_page')
+    per_page = int(per_page) if per_page else per_page
+
     alumnos_gte = request.args.get('alumnos_gte')   #Alumnos greater or equal to this value
+    alumnos_gte = int(alumnos_gte) if alumnos_gte else alumnos_gte
+
     if(page == None and per_page == None):
         return filtrar_asignaturas_url(alumnos_gte)
     elif(page != None and per_page != None):
         return filtrar_asignaturas_url(alumnos_gte, page, per_page)
     elif (page == None and per_page != None):
-        return ("Debe introducirse el parámetro page si se introduce el parámetro per_page", 400)
+        return ("Debe introducirse el parámetro page si se introduce el parámetro per_page\n", 400)
     elif (page != None and per_page == None):
-        return ("Debe introducirse el parámetro per_page si se introduce el parámetro page", 400)
+        return ("Debe introducirse el parámetro per_page si se introduce el parámetro page\n", 400)
         
 
 class FlaskConfig:
