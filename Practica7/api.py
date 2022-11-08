@@ -70,9 +70,9 @@ def filtrar_asignaturas_url(alumnos_gte: int, page: int = None, per_page: int = 
         pagina_asignaturas = asignaturas_filtradas
 
     #se generan las urls
-    app.logger.info(pagina_asignaturas)
+    # app.logger.info(pagina_asignaturas)
     urls = [f"/asignaturas/{x.get('id')}" for x in pagina_asignaturas]
-    app.logger.info(f"Más de {alumnos_gte} alumnos")
+    # app.logger.info(f"Más de {alumnos_gte} alumnos")
 
     code = None
     if(len(urls) < len(lista_asignaturas)):
@@ -138,13 +138,9 @@ def eliminar_asignatura(id: int):
     for asignatura in lista_asignaturas:
         if asignatura.get("id", -1) == id:
             lista_asignaturas.remove(asignatura)
-            encontrada = True
-            break
+            return ("", 204)
 
-    if encontrada:
-        return ("", 204)
-    else:
-        return ("", 404)
+    return ("", 404)
 
 @app.route("/asignaturas/<int:id>", methods=['GET'])
 def acceder_asignatura(id: int):
@@ -158,8 +154,6 @@ def acceder_asignatura(id: int):
 @app.route("/asignaturas/<int:id>", methods=['PUT'])
 def reemplazar_asignatura(id: int):
     """Modifica la asignatura de dicho id a los parámetros especificados"""
-    nueva_as = request.get_json()
-    error = comprobar_asignatura(nueva_as)
 
     asignatura_i = [i for i, a in enumerate(lista_asignaturas) if a.get("id", -1) == id]
     if len(asignatura_i) == 0:
@@ -168,6 +162,9 @@ def reemplazar_asignatura(id: int):
         return ("Colisión de ids", 500)    #Si se llega a este caso es que algo ha fallado en el server (id repetido)
     else:
         asignatura_i = asignatura_i[0]
+
+    nueva_as = request.get_json()
+    error = comprobar_asignatura(nueva_as)
 
     if error is not None:
         return ("", 400)
@@ -200,8 +197,8 @@ def cambiar_asignatura(id: int):
     mensaje_e = comprobar_asignatura(nueva_as)
     nueva_as["id"] = id
     if (mensaje_e is not None):    #Comprobar que el campo introducido no hace que quede fuera de los límites
-        app.logger.info(nueva_as)
-        app.logger.error("Asignatura no válida: " + mensaje_e)
+        # app.logger.info(nueva_as)
+        # app.logger.error("Asignatura no válida: " + mensaje_e)
         return ("", 400)
     
     lista_asignaturas[asignatura_i] = nueva_as  #Aplicar el cambio
