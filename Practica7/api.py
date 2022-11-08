@@ -38,7 +38,7 @@ def horario_valido(horario: list) -> bool:
     return True
 
 def comprobar_asignatura(asignatura: dict) -> str or None:
-    """Comprueba si una asignatura es correcta o no."""
+    """Comprueba si una asignatura es correcta o no. Devuelve un str con el mensaje del error si no es correcta."""
     
     if len(asignatura) > 3:
         return "Demasiados campos"
@@ -80,6 +80,14 @@ def filtrar_asignaturas_url(alumnos_gte: int, page: int = None, per_page: int = 
 ###
 ### <DEFINIR AQUI EL SERVICIO REST>
 ###
+@app.route("/asignaturas", methods=['DELETE'])
+def eliminar_asignaturas():
+    """Borra todas las asignaturas que pudieran existir. Devuelve el código 204 No Content"""
+    #Borrar (resetear el diccionario de asignaturas)
+    global lista_asignaturas
+    lista_asignaturas = list()
+    return ("", 204)
+
 @app.route("/asignaturas", methods=["POST"])
 def asignaturas_post():
     global next_id, lista_asignaturas
@@ -97,17 +105,8 @@ def asignaturas_post():
 
     else:  return ("", 400)
 
-@app.route("/asignaturas", methods=['DELETE'])
-def eliminar_asignaturas():
-    """Borra todas las asignaturas que pudieran existir. Devuelve el código 204 No Content"""
-    #Borrar (resetear el diccionario de asignaturas)
-    global lista_asignaturas
-    lista_asignaturas = list()
-    return ("", 204)
-
-
 @app.route("/asignaturas", methods=['GET'])
-def acceder_asignatura():
+def acceder_asignaturas():
     """Devuelve un JSON con las URLs de la asignatura. Si no se especifica la asignatura se devuelven todas."""
     page = request.args.get('page')
     page = int(page) if page else page  #Convert to int if not None
@@ -126,7 +125,80 @@ def acceder_asignatura():
         return ("Debe introducirse el parámetro page si se introduce el parámetro per_page\n", 400)
     elif (page != None and per_page == None):
         return ("Debe introducirse el parámetro per_page si se introduce el parámetro page\n", 400)
-        
+
+@app.route("/asignaturas/<int:id>", methods=['DELETE'])
+def eliminar_asignatura(id: int):
+    encontrada = False
+    for asignatura in lista_asignaturas:
+        if asignatura.get("id", -1) == id:
+            lista_asignaturas.remove(asignatura)
+            encontrada = True
+            break
+
+    if encontrada:
+        return ("", 204)
+    else:
+        return ("", 404)
+
+@app.route("/asignaturas/<int:id>", methods=['GET'])
+def acceder_asignatura(id: int):
+    """Devuelve la asignatura de dicho id"""
+    for asignatura in lista_asignaturas:
+        if asignatura.get("id", -1) == id:
+            return (asignatura, 200)
+
+    return ("", 404)
+
+@app.route("/asignaturas/<int:id>", methods=['PUT'])
+def reemplazar_asignatura(id: int):
+    """Modifica la asignatura de dicho id a los parámetros especificados"""
+    nueva_as = request.get_json()
+    error = comprobar_asignatura(nueva_as)
+
+    asignatura_i = [i for i, a in enumerate(lista_asignaturas) if a.get("id", -1) == id]
+    if len(asignatura_i) == 0:
+        return ("", 404)    #No se encontró la asignatura
+    elif len(asignatura_i) > 1:
+        return ("Colisión de ids", 500)    #Si se llega a este caso es que algo ha fallado en el server (id repetido)
+    else:
+        asignatura_i = asignatura_i[0]
+
+    if error is not None:
+        return ("", 400)
+
+    nueva_as["id"] = id
+    lista_asignaturas[asignatura_i] = nueva_as
+    return ("", 200)
+
+@app.route("/asignaturas/<int:id>", methods=['PATCH'])
+def cambiar_asignatura(id: int):
+    campo = request.get_json()
+
+    if(len(campo) != 1):    #Comrobar que es un único campo el que se quiere añadir
+        return ("Len", 400)
+
+    asignatura_i = [i for i, a in enumerate(lista_asignaturas) if a.get("id", -1) == id]
+    if len(asignatura_i) == 0:
+        return ("", 404)    #No se encontró la asignatura
+    elif len(asignatura_i) > 1:
+        return ("Colisión de ids", 500)    #Si se llega a este caso es que algo ha fallado en el server (id repetido)
+    else:
+        asignatura_i = asignatura_i[0]
+
+    #Formar la nueva asignatura
+    nueva_as = lista_asignaturas[asignatura_i]
+    nueva_as.update(campo)
+
+    nueva_as.pop("id")
+    mensaje_e = comprobar_asignatura(nueva_as)
+    nueva_as["id"] = id
+    if (mensaje_e is not None):    #Comprobar que el campo introducido no hace que quede fuera de los límites
+        app.logger.info(nueva_as)
+        app.logger.error("Asignatura no válida: " + mensaje_e)
+        return ("", 400)
+    
+    lista_asignaturas[asignatura_i] = nueva_as  #Aplicar el cambio
+    return ("", 200)
 
 class FlaskConfig:
     """Configuración de Flask"""
