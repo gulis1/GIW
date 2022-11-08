@@ -9,3 +9,4 @@ Practica4/Bases+de+Datos-SQLite.ipynb
 
 #Ignorar tests
 tests.py
+.vscode/settings.json

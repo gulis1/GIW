@@ -22,6 +22,7 @@ DIAS_SEMANA = ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "d
 lista_asignaturas = []
 next_id = 0
 
+#Funciones auxiliares
 def horario_valido(horario: list) -> bool:
     
     try:
@@ -57,18 +58,21 @@ def filtrar_asignaturas_url(alumnos_gte: int, page: int = None, per_page: int = 
     if(alumnos_gte == None):    #Valor por defecto
         alumnos_gte = 0
 
-    pagina_asignaturas = None
+    asignaturas_filtradas = [x for x in lista_asignaturas if x.get("numero_alumnos") >= alumnos_gte]    #Se filtran
+
+    pagina_asignaturas = None   #Se coge la página correspondiente
     if(page != None and per_page != None):
         ini = (page - 1) * per_page
         fin = page*per_page
         # app.logger.info("Rango de elementos cogidos (ini-fin): "str(ini) + str(fin))
-        pagina_asignaturas = lista_asignaturas[ini:fin]
+        pagina_asignaturas = asignaturas_filtradas[ini:fin]
     else:
-        pagina_asignaturas = lista_asignaturas
+        pagina_asignaturas = asignaturas_filtradas
 
+    #se generan las urls
     app.logger.info(pagina_asignaturas)
-    urls = [f"/asignaturas/{x.get('id')}" for x in pagina_asignaturas if x.get("numero_alumnos") >= alumnos_gte]
-    app.logger.info(alumnos_gte)
+    urls = [f"/asignaturas/{x.get('id')}" for x in pagina_asignaturas]
+    app.logger.info(f"Más de {alumnos_gte} alumnos")
 
     code = None
     if(len(urls) < len(lista_asignaturas)):
@@ -80,6 +84,7 @@ def filtrar_asignaturas_url(alumnos_gte: int, page: int = None, per_page: int = 
 ###
 ### <DEFINIR AQUI EL SERVICIO REST>
 ###
+#2.1--
 @app.route("/asignaturas", methods=['DELETE'])
 def eliminar_asignaturas():
     """Borra todas las asignaturas que pudieran existir. Devuelve el código 204 No Content"""
@@ -126,6 +131,7 @@ def acceder_asignaturas():
     elif (page != None and per_page == None):
         return ("Debe introducirse el parámetro per_page si se introduce el parámetro page\n", 400)
 
+#2.2--
 @app.route("/asignaturas/<int:id>", methods=['DELETE'])
 def eliminar_asignatura(id: int):
     encontrada = False
@@ -172,10 +178,6 @@ def reemplazar_asignatura(id: int):
 
 @app.route("/asignaturas/<int:id>", methods=['PATCH'])
 def cambiar_asignatura(id: int):
-    campo = request.get_json()
-
-    if(len(campo) != 1):    #Comrobar que es un único campo el que se quiere añadir
-        return ("Len", 400)
 
     asignatura_i = [i for i, a in enumerate(lista_asignaturas) if a.get("id", -1) == id]
     if len(asignatura_i) == 0:
@@ -184,6 +186,11 @@ def cambiar_asignatura(id: int):
         return ("Colisión de ids", 500)    #Si se llega a este caso es que algo ha fallado en el server (id repetido)
     else:
         asignatura_i = asignatura_i[0]
+
+    campo = request.get_json()
+
+    if(len(campo) != 1):    #Comrobar que es un único campo el que se quiere añadir
+        return ("Len", 400)
 
     #Formar la nueva asignatura
     nueva_as = lista_asignaturas[asignatura_i]
@@ -199,6 +206,16 @@ def cambiar_asignatura(id: int):
     
     lista_asignaturas[asignatura_i] = nueva_as  #Aplicar el cambio
     return ("", 200)
+
+#2.3--
+@app.route("/asignaturas/<int:id>/horario", methods=['GET'])
+def get_horario(id: int):
+    """Devuelve el horario de la asignatura de dicho id."""
+    for asignatura in lista_asignaturas:
+        if asignatura.get("id", -1) == id:
+            return ({"horario": asignatura.get("horario", [])}, 200)
+
+    return ("", 404)
 
 class FlaskConfig:
     """Configuración de Flask"""
