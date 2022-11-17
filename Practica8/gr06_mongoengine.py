@@ -1,3 +1,18 @@
+"""
+GIW 2022-23
+Práctica 8
+Grupo 6
+Autores: (Roberto Tejedor Moreno, Julián Cámara Miró, Pablo Lozano Martín, Jun Qiu y
+Jaime Pastrana García)
+
+El grupo 6 (Roberto Tejedor Moreno, Julián Cámara Miró, Pablo Lozano Martín, Jun Qiu y
+Jaime Pastrana García) declaramos que esta solución es fruto exclusivamente
+de nuestro trabajo personal. No hemos sido ayudados por ninguna otra persona ni hemos
+obtenido la solución de fuentes externas, y tampoco hemos compartido nuestra solución
+con nadie. Declaramos además que no hemos realizado de manera deshonesta ninguna otra
+actividad que pueda mejorar nuestros resultados ni perjudicar los resultados de los demás.
+"""
+
 from mongoengine import *
 
 def dni_valid(num: int, l: str) -> bool:
@@ -34,7 +49,6 @@ class Producto(Document):
         correcto = (10 - suma % 10) % 10
 
         if self.codigo_barras[-1] != str(correcto):
-            print(correcto)
             raise ValidationError('Código de barras incorrecto.')
 
         if len(self.categorias_secundarias) > 0 and self.categoria_principal != self.categorias_secundarias[0]:
