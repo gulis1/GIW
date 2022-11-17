@@ -33,6 +33,11 @@ class Producto(Document):
             print(correcto)
             raise ValidationError('Código de barras incorrecto.')
 
+        if len(self.categorias_secundarias) > 0 and self.categoria_principal != self.categorias_secundarias[0]:
+            raise ValidationError('Categorías secundarioas incorrectas.')
+
+
+
 class Linea(EmbeddedDocument):
 
     nombre_item = StringField(required=True, min_length = 2) 
@@ -44,14 +49,28 @@ class Linea(EmbeddedDocument):
     def clean(self):
         self.validate(clean=False)
         
+        if self.nombre_item != self.ref.nombre:
+            raise ValidationError('El nombre del produco no coincide.')
+
         if self.total != self.num_items * self.precio_item:
-            raise ValidationError('Código de barras incorrecto.')
+            raise ValidationError('El precio total no es correcto.')
 
 
 class Pedido(Document):
-    total = IntField(required=True, min_value=0)
-    fecha = ComplexDateTimeField(reuired=True)
+    total = FloatField(required=True, min_value=0)
+    fecha = ComplexDateTimeField(required=True)
     lineas = ListField(EmbeddedDocumentField(Linea), required=True)
+
+    def clean(self):
+        self.validate(clean=False)
+        
+        if len(self.lineas) != len(set([linea.nombre_item for linea in self.lineas])):
+            raise ValidationError('Hay dos líneas para el mismo producto.')
+
+        if self.total != sum([linea.total for linea in self.lineas]):
+            raise ValidationError('El precio total del pedido no es correcto.')
+
+
 
 class Usuario(Document):
     dni = StringField(required=True, unique=True, min_length = 9, max_length = 9, regex = "[0-9]{8}[A-Z]")
@@ -60,4 +79,4 @@ class Usuario(Document):
     apellido2 = StringField(required=False, min_length = 2)
     f_nac = StringField(required=True, regex = "^[0-9]{4}-[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$")
     tarjetas = ListField(EmbeddedDocumentField(Tarjeta), required=False)
-    pedidos = ListField(ReferenceField(Pedido), required = False)
+    pedidos = ListField(ReferenceField(Pedido, reverse_delete_rule=PULL), required = False)
