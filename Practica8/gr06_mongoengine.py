@@ -1,5 +1,9 @@
 from mongoengine import *
 
+def dni_valid(num: int, l: str) -> bool:
+    letras = "TRWAGMYFPDXBNJZSQVHLCKE"
+    return letras[num%23] == l
+
 class Tarjeta(EmbeddedDocument):
     nombre = StringField(required=True, min_length=2)
     numero = StringField(required=True, regex="^[0-9]{16}$", primary_key=True)
@@ -80,3 +84,11 @@ class Usuario(Document):
     f_nac = StringField(required=True, regex = "^[0-9]{4}-[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$")
     tarjetas = ListField(EmbeddedDocumentField(Tarjeta), required=False)
     pedidos = ListField(ReferenceField(Pedido, reverse_delete_rule=PULL), required = False)
+    
+    def clean(self):
+        self.validate(clean=False)
+        num = int(self.dni[0:8])
+        letra = self.dni[8]
+        if(not dni_valid(num, letra)):
+            raise ValidationError("DNI incorrecto: " + str(num) + ' ' + letra)
+
