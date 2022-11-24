@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Login TOTP</title>
+</head>
+<body>
+ <h1>Login TOTP</h1>
+ <form action="http://localhost:5000/login_totp" method="post">
+  Nickname:<br>
+  <input type="text" name="nickname" value="">
+  <br>
+  Password:<br>
+  <input type="password" name="password" value="">
+  <br>
+  Time-based One-time Password:<br>
+  <input type="number" name="totp" value="">
+  <br>
+  <br><br>
+  <input type="submit" value="Submit">
+</form> 
+</body>
+</html>
