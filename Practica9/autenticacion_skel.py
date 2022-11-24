@@ -16,13 +16,27 @@ actividad que pueda mejorar nuestros resultados ni perjudicar los resultados de 
 """
 
 
+# -*- coding: utf-8 -*-
+
+#
+# CABECERA AQUI
+#
+
+
 from flask import Flask, request, session, render_template
 from mongoengine import connect, Document, StringField, EmailField
+from mongoengine.errors import *
+from passlib.hash import argon2
+import pyotp
+from flask_qrcode import QRcode
 # Resto de importaciones
 
 
 app = Flask(__name__)
 connect('giw_auth')
+
+QRcode(app)
+
 
 
 # Clase para almacenar usuarios usando mongoengine
@@ -47,17 +61,59 @@ class User(Document):
 
 @app.route('/signup', methods=['POST'])
 def signup():
-    ...
+
+    if request.form["password"] != request.form["password2"]:
+        return "Las contaseñas no coinciden."
+
+    user_exisente = User.objects(user_id=request.form["nickname"])
+    if user_exisente:
+        return "El usuario ya existe."
+
+    hashed_pass = argon2.hash(request.form["password"])
+
+    user = User(user_id=request.form["nickname"],
+                full_name = request.form["full_name"],
+                country = request.form["country"],
+                email = request.form["email"],
+                passwd = hashed_pass,
+                totp_secret = "secreto"
+            )
+    
+    user.save()
+    return f"Bienvenido usuario {user.full_name}"
 
 
 @app.route('/change_password', methods=['POST'])
 def change_password():
-    ...
+    
+    try:
+
+        user= User.objects.get(user_id=request.form["nickname"])
+        if not argon2.verify(request.form["old_password"], user.passwd): 
+            raise AssertionError("Las contraseñas no coinciden.")
+        
+        user.passwd = argon2.hash(request.form["new_password"])
+        user.save()
+            
+    except (DoesNotExist, AssertionError):
+        return "Usuario o contraseña incorrectas."
+
+    return f"La contraseña del usuario {user.user_id} ha sido modificada."
  
            
 @app.route('/login', methods=['POST'])
 def login():
-    ...
+    try:
+
+        user= User.objects.get(user_id=request.form["nickname"])
+        if not argon2.verify(request.form["password"], user.passwd):
+            raise AssertionError("Las contraseñas no coinciden.")
+
+            
+    except (DoesNotExist, AssertionError):
+        return "Usuario o contraseña incorrectas."
+
+    return f"Bienvenido {user.full_name}."
     
 
 ##############
@@ -72,7 +128,26 @@ def login():
 
 @app.route('/signup_totp', methods=['POST'])
 def signup_totp():
-    ...
+    if request.form["password"] != request.form["password2"]:
+        return "Las contaseñas no coinciden."
+
+    user_exisente = User.objects(user_id=request.form["nickname"])
+    if user_exisente:
+        return "El usuario ya existe."
+
+    hashed_pass = argon2.hash(request.form["password"])
+    
+
+    user = User(user_id=request.form["nickname"],
+                full_name = request.form["full_name"],
+                country = request.form["country"],
+                email = request.form["email"],
+                passwd = hashed_pass,
+                totp_secret = pyotp.random_base32()
+            )
+    
+    user.save()
+    return f"<img src='{{qrcode(user.totp_secret) }}'>"
         
 
 @app.route('/login_totp', methods=['POST'])
