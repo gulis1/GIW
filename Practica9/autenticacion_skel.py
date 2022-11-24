@@ -1,8 +1,19 @@
 # -*- coding: utf-8 -*-
 
-#
-# CABECERA AQUI
-#
+"""
+GIW 2022-23
+Práctica 9
+Grupo 6
+Autores: (Roberto Tejedor Moreno, Julián Cámara Miró, Pablo Lozano Martín, Jun Qiu y
+Jaime Pastrana García)
+
+El grupo 6 (Roberto Tejedor Moreno, Julián Cámara Miró, Pablo Lozano Martín, Jun Qiu y
+Jaime Pastrana García) declaramos que esta solución es fruto exclusivamente
+de nuestro trabajo personal. No hemos sido ayudados por ninguna otra persona ni hemos
+obtenido la solución de fuentes externas, y tampoco hemos compartido nuestra solución
+con nadie. Declaramos además que no hemos realizado de manera deshonesta ninguna otra
+actividad que pueda mejorar nuestros resultados ni perjudicar los resultados de los demás.
+"""
 
 
 from flask import Flask, request, session, render_template

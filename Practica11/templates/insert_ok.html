@@ -1,0 +1,44 @@
+<!--
+  insert_ok.html
+  Plantilla para volver a la página principal después de insertar una pregunta
+
+  Gestión de la Información en la Web
+  Facultad de Informática
+  Universidad Complutense de Madrid
+
+  Copyright (c) 2020 Enrique Martín Martín. All rights reserved.
+-->
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>El Coladero - Pregunta insertada con éxito</title>
+		<style>
+			header.title {
+				margin-left: auto;
+		        margin-right: auto;
+		        width: 30em;
+			}
+
+			form.preguntar {
+			    margin-left: auto;
+		        margin-right: auto;
+		        width: 30em;
+			}
+
+			table.question {
+				border: solid 1px;
+			    position: relative;
+			}
+
+			td.title {
+				font-weight: bold;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Mensaje insertado con éxito</h1>
+        <h2><a href="{{ url }}">Volver</a></h2>
+	</body>
+</html>

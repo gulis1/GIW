@@ -1,0 +1,90 @@
+<!--
+  messages.html 
+  Plantilla para mostrar todas las preguntas
+  
+  Gestión de la Información en la Web
+  Facultad de Informática
+  Universidad Complutense de Madrid
+
+  Copyright (c) 2020 Enrique Martín Martín. All rights reserved.
+-->
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" /> 
+		<title>El Coladero - Todas las preguntas</title>
+		<style>
+			header.title {
+				margin-left: auto;
+		        margin-right: auto;
+		        width: 30em;
+			}
+			
+			form.preguntar {
+			    margin-left: auto;
+		        margin-right: auto;
+		        width: 30em;
+			}
+			
+			table.question {
+				border: solid 1px;
+			    position: relative;
+			}
+			
+			td.title {
+				font-weight: bold;
+			}
+		</style> 
+	</head>
+	<body>
+		<header class="title"><h1>El Coladero</h1></header>
+		<header class="title"><h2>Foro de preguntas y respuestas</h2></header>
+		
+    <form action="search_question">
+		Búsqueda por etiqueta: <input type="search" name="tag"><input type="submit" value="Buscar">
+		</form> 
+		<br/>
+		
+		{% for q in questions %}
+		<table class="question">
+			<tr>
+		    <td>Título:</td>
+		    <td class="title">{{q[1]}}</td>
+		  <tr>
+		  <tr>
+		    <td>Autor:</td>
+		    <td>{{q[0]}}</td>
+		  <tr>
+		  <tr>
+		    <td>Fecha:</td>
+		    <td>{{q[2]}}</td>
+		  <tr>
+		  <tr>
+		    <td>Etiquetas:</td>
+		    <td>{{q[3]}}</td>
+		  <tr>
+		</table>
+		<a href="show_question?id={{q[4]| safe}}">Ver</a>
+		<br/><br/>
+		{% endfor %}
+		
+		<br/><br/>
+		<form class="preguntar" action="insert_question" method="POST">
+			<label for="author">Autor:</label>
+	        <input type="text" name="author"><br/>
+
+			<label for="title">Titulo:</label>
+	        <input type="text" name="title"><br/>
+
+	  		<label for="tags">Etiquetas:</label>
+			<input type="text" name="tags"><br/>
+
+			<label for="body">Pregunta:</label>
+	        <textarea rows="4" cols="50" name="body"></textarea><br/>
+
+	  		<input type="submit" value="Preguntar">
+		</form> 
+	  
+	</body>
+</html>
