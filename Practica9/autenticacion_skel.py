@@ -23,9 +23,9 @@ actividad que pueda mejorar nuestros resultados ni perjudicar los resultados de 
 #
 
 
-from flask import Flask, request, session, render_template
+from flask import Flask, request, render_template
 from mongoengine import connect, Document, StringField, EmailField
-from mongoengine.errors import *
+from mongoengine.errors import DoesNotExist, ValidationError
 from passlib.hash import argon2
 import pyotp
 from flask_qrcode import QRcode
@@ -145,14 +145,33 @@ def signup_totp():
                 passwd = hashed_pass,
                 totp_secret = pyotp.random_base32()
             )
-    
-    user.save()
-    return f"<img src='{{qrcode(user.totp_secret) }}'>"
+    try:
+        user.save()
+    except ValidationError as e:
+        return e.message, 400
+
+    return render_template("totp_signup_success.html", name=user.full_name, secret=f"otpauth://totp/GIWApp?secret={user.totp_secret}")
         
 
 @app.route('/login_totp', methods=['POST'])
 def login_totp():
-    ...
+    
+    try:
+
+        user = User.objects.get(user_id=request.form["nickname"])
+        if not argon2.verify(request.form["password"], user.passwd):
+            raise AssertionError("Las contraseñas no coinciden.")
+        
+        totp = pyotp.TOTP(user.totp_secret)
+        if not totp.verify(request.form["totp"]):
+            raise AssertionError("El TOTP no coincide.")
+
+
+            
+    except (DoesNotExist, AssertionError):
+        return "Usuario o contraseña incorrectas."
+
+    return f"Bienvenido {user.full_name}."
   
 
 class FlaskConfig:
