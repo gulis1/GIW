@@ -1,6 +1,6 @@
 """
 GIW 2022-23
-Práctica 8
+Práctica 10
 Grupo 6
 Autores: (Roberto Tejedor Moreno, Julián Cámara Miró, Pablo Lozano Martín, Jun Qiu y
 Jaime Pastrana García)
