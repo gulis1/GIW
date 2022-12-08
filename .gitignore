@@ -2,7 +2,7 @@
 */*.sqlite3
 Practica4/Bases+de+Datos-SQLite.ipynb
 */SQLiteStudio
-/Practica6/credentials.json
+/*/credentials.json
 
 #Ignorar enunciados
 *.pdf
